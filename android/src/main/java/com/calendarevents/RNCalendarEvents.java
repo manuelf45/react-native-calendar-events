@@ -59,7 +59,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     }
 
     //region Calendar Permissions
-    private void requestCalendarPermission(boolean readOnly, final Promise promise)
+    private void requestCalendarPermission(boolean limited, final Promise promise)
     {
         Activity currentActivity = getCurrentActivity();
         if (currentActivity == null) {
@@ -74,7 +74,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         PERMISSION_REQUEST_CODE++;
         permissionsPromises.put(PERMISSION_REQUEST_CODE, promise);
         String[] permissions = new String[]{Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR};
-        if (readOnly == true) {
+        if (limited == true) {
             permissions = new String[]{Manifest.permission.READ_CALENDAR};
         }
         activity.requestPermissions(permissions, PERMISSION_REQUEST_CODE, this);
@@ -100,11 +100,11 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return permissionsPromises.size() == 0;
     }
 
-    private boolean haveCalendarPermissions(boolean readOnly) {
+    private boolean haveCalendarPermissions(boolean limited) {
         int writePermission = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.WRITE_CALENDAR);
         int readPermission = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.READ_CALENDAR);
 
-        if (readOnly) {
+        if (limited) {
             return readPermission == PackageManager.PERMISSION_GRANTED;
         }
 
@@ -112,7 +112,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 readPermission == PackageManager.PERMISSION_GRANTED;
     }
     
-    private boolean shouldShowRequestPermissionRationale(boolean readOnly) {
+    private boolean shouldShowRequestPermissionRationale(boolean limited) {
         Activity currentActivity = getCurrentActivity();
 
         if (currentActivity == null) {
@@ -126,7 +126,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         PermissionAwareActivity activity = (PermissionAwareActivity)currentActivity;
 
-        if (readOnly) {
+        if (limited) {
             return activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_CALENDAR);
         }
         return activity.shouldShowRequestPermissionRationale(Manifest.permission.WRITE_CALENDAR);
@@ -472,7 +472,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return result;
     }
 
-    private long addEvent(String title, ReadableMap details, ReadableMap options) throws ParseException {
+    private long addEvent(String title, ReadableMap details, ReadableMap options, final Promise promise) throws ParseException {
         String dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
         boolean skipTimezone = false;
@@ -673,7 +673,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             }
 
             if (details.hasKey("alarms")) {
-                createRemindersForEvent(cr, Long.parseLong(details.getString("id")), details.getArray("alarms"));
+                createRemindersForEvent(cr, Long.parseLong(details.getString("id")), details.getArray("alarms"), promise);
             }
 
             if (details.hasKey("attendees")) {
@@ -715,7 +715,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                     eventID = Long.parseLong(rowId);
 
                     if (details.hasKey("alarms")) {
-                        createRemindersForEvent(cr, eventID, details.getArray("alarms"));
+                        createRemindersForEvent(cr, eventID, details.getArray("alarms"), promise);
                     }
 
                     if (details.hasKey("attendees")) {
@@ -842,7 +842,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     //endregion
 
     //region Reminders
-    private void createRemindersForEvent(ContentResolver resolver, long eventID, ReadableArray reminders) {
+    private void createRemindersForEvent(ContentResolver resolver, long eventID, ReadableArray reminders, final Promise promise) {
         Cursor cursor = null;
 
         if (resolver != null) {
@@ -866,19 +866,23 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             cursor.close();
         }
 
-        for (int i = 0; i < reminders.size(); i++) {
-            ReadableMap reminder = reminders.getMap(i);
-            ReadableType type = reminder.getType("date");
-            if (type == ReadableType.Number) {
-                int minutes = reminder.getInt("date");
-                ContentValues reminderValues = new ContentValues();
+        try {
+            for (int i = 0; i < reminders.size(); i++) {
+                ReadableMap reminder = reminders.getMap(i);
+                ReadableType type = reminder.getType("date");
+                if (type == ReadableType.Number) {
+                    int minutes = reminder.getInt("date");
+                    ContentValues reminderValues = new ContentValues();
 
-                reminderValues.put(CalendarContract.Reminders.EVENT_ID, eventID);
-                reminderValues.put(CalendarContract.Reminders.MINUTES, minutes);
-                reminderValues.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
+                    reminderValues.put(CalendarContract.Reminders.EVENT_ID, eventID);
+                    reminderValues.put(CalendarContract.Reminders.MINUTES, minutes);
+                    reminderValues.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
 
-                resolver.insert(CalendarContract.Reminders.CONTENT_URI, reminderValues);
+                    resolver.insert(CalendarContract.Reminders.CONTENT_URI, reminderValues);
+                }
             }
+        } catch (Exception e) {
+            promise.reject("add event error", "Unable to save event");
         }
     }
 
@@ -907,7 +911,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 continue;
             }
 
-            cal.add(Calendar.MINUTE, minutes);
+            cal.add(Calendar.MINUTE, -minutes);
             alarm.putString("date", sdf.format(cal.getTime()));
             results.pushMap(alarm);
         }
@@ -1211,9 +1215,9 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     }
     // endregion
 
-    private String getPermissionKey(boolean readOnly) {
+    private String getPermissionKey(boolean limited) {
         String permissionKey = "permissionRequested"; // default to previous key for read/write, backwards-compatible
-        if (readOnly) {
+        if (limited) {
             permissionKey = "permissionRequestedRead"; // new key for read-only permission requests
         }
         return permissionKey;
@@ -1221,16 +1225,16 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
     //region React Native Methods
     @ReactMethod
-    public void checkPermissions(boolean readOnly, Promise promise) {
+    public void checkPermissions(boolean limited, Promise promise) {
         try {
             SharedPreferences sharedPreferences = reactContext.getSharedPreferences(RNC_PREFS, ReactContext.MODE_PRIVATE);
-            boolean permissionRequested = sharedPreferences.getBoolean(getPermissionKey(readOnly), false);
+            boolean permissionRequested = sharedPreferences.getBoolean(getPermissionKey(limited), false);
 
-            if (this.haveCalendarPermissions(readOnly)) {
+            if (this.haveCalendarPermissions(limited)) {
                 promise.resolve("authorized");
             } else if (!permissionRequested) {
                 promise.resolve("undetermined");
-            } else if (this.shouldShowRequestPermissionRationale(readOnly)) {
+            } else if (this.shouldShowRequestPermissionRationale(limited)) {
                 promise.resolve("denied");
             } else {
                 promise.resolve("restricted");
@@ -1243,17 +1247,17 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     }
 
     @ReactMethod
-    public void requestPermissions(boolean readOnly, Promise promise) {
+    public void requestPermissions(boolean limited, Promise promise) {
         try {
             SharedPreferences sharedPreferences = reactContext.getSharedPreferences(RNC_PREFS, ReactContext.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean(getPermissionKey(readOnly), true);
+            editor.putBoolean(getPermissionKey(limited), true);
             editor.apply();
 
-            if (this.haveCalendarPermissions(readOnly)) {
+            if (this.haveCalendarPermissions(limited)) {
                 promise.resolve("authorized");
             } else {
-                this.requestCalendarPermission(readOnly, promise);
+                this.requestCalendarPermission(limited, promise);
             }
         }
         catch(Throwable t) {
@@ -1349,7 +1353,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                     public void run() {
                         long eventId;
                         try {
-                            eventId = addEvent(title, details, options);
+                            eventId = addEvent(title, details, options, promise);
                             if (eventId > -1) {
                                 promise.resolve(Long.toString(eventId));
                             } else {
@@ -1400,7 +1404,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     }
 
     @ReactMethod
-    public void findById(final String eventID, final Promise promise) {
+    public void findEventById(final String eventID, final Promise promise) {
         if (this.haveCalendarPermissions(true)) {
             try {
                 Thread thread = new Thread(new Runnable(){

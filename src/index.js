@@ -1,17 +1,18 @@
-import { NativeModules, processColor } from "react-native";
+import { NativeModules, Platform, processColor } from "react-native";
 
 const RNCalendarEvents = NativeModules.RNCalendarEvents;
 
 export default {
-  async checkPermissions(readOnly = false) {
-    return RNCalendarEvents.checkPermissions(readOnly);
+  async checkPermissions(limited = false) {
+    return RNCalendarEvents.checkPermissions(limited);
   },
-  async requestPermissions(readOnly = false) {
-    return RNCalendarEvents.requestPermissions(readOnly);
+
+  async requestPermissions(limited = false) {
+    return RNCalendarEvents.requestPermissions(limited);
   },
 
   async fetchAllEvents(startDate, endDate, calendars = []) {
-    return RNCalendarEvents.findAllEvents(startDate, endDate, calendars);
+    return RNCalendarEvents.fetchAllEvents(startDate, endDate, calendars);
   },
 
   async findCalendars() {
@@ -30,22 +31,32 @@ export default {
   },
 
   async findEventById(id) {
-    return RNCalendarEvents.findById(id);
+    return RNCalendarEvents.findEventById(id);
   },
 
   async saveEvent(title, details, options = { sync: false }) {
     return RNCalendarEvents.saveEvent(title, details, options);
   },
 
-  async removeEvent(id, options = { sync: false }) {
+  async removeEvent(
+    id,
+    options = Platform.OS === "ios" ? { futureEvents: false } : { sync: false }
+  ) {
+    return RNCalendarEvents.removeEvent(id, options);
+  },
+
+  async removeFutureEvents(id, options = { futureEvents: true }) {
+    if (Platform.OS !== "ios") return;
     return RNCalendarEvents.removeEvent(id, options);
   },
 
   async uriForCalendar() {
+    if (Platform.OS !== "android") return;
     return RNCalendarEvents.uriForCalendar();
   },
 
-  openEventInCalendar(eventID) {
+  async openEventInCalendar(eventID) {
+    if (Platform.OS !== "android") return;
     RNCalendarEvents.openEventInCalendar(eventID);
   },
 };

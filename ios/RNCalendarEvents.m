@@ -94,8 +94,12 @@ RCT_EXPORT_MODULE()
 - (BOOL)isCalendarAccessGranted
 {
     EKAuthorizationStatus status = [EKEventStore authorizationStatusForEntityType:EKEntityTypeEvent];
-
-    return status == EKAuthorizationStatusAuthorized;
+  
+    if (@available(iOS 17, *)) {
+        return (status == EKAuthorizationStatusFullAccess || status == EKAuthorizationStatusAuthorized);
+    } else {
+        return status == EKAuthorizationStatusAuthorized;
+    }
 }
 
 #pragma mark -
@@ -120,7 +124,7 @@ RCT_EXPORT_MODULE()
     NSString *timeZone = [RCTConvert NSString:details[_timeZone]];
 
     if (eventId) {
-        Boolean futureEvents = [RCTConvert BOOL:options[@"futureEvents"]];
+        BOOL futureEvents = [RCTConvert BOOL:options[@"futureEvents"]];
         NSDate *exceptionDate = [RCTConvert NSDate:options[@"exceptionDate"]];
 
         if(exceptionDate) {
@@ -238,11 +242,14 @@ RCT_EXPORT_MODULE()
 {
     NSMutableDictionary *response = [NSMutableDictionary dictionaryWithDictionary:@{@"success": [NSNull null], @"error": [NSNull null]}];
     NSDate *exceptionDate = [RCTConvert NSDate:options[@"exceptionDate"]];
-    EKSpan eventSpan = EKSpanFutureEvents;
+    BOOL futureEvents = [RCTConvert BOOL:options[@"futureEvents"]];
+
+    EKSpan eventSpan = EKSpanThisEvent;
 
     if (exceptionDate) {
-        calendarEvent.startDate = exceptionDate;
-        eventSpan = EKSpanThisEvent;
+        if (futureEvents) {
+            eventSpan = EKSpanFutureEvents;
+        }
     }
 
     NSError *error = nil;
@@ -755,39 +762,86 @@ RCT_EXPORT_MODULE()
 #pragma mark -
 #pragma mark RCT Exports
 
-RCT_EXPORT_METHOD(checkPermissions:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(checkPermissions:(BOOL)limited resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *status;
     EKAuthorizationStatus authStatus = [EKEventStore authorizationStatusForEntityType:EKEntityTypeEvent];
 
-    switch (authStatus) {
-        case EKAuthorizationStatusDenied:
-            status = @"denied";
-            break;
-        case EKAuthorizationStatusRestricted:
-            status = @"restricted";
-            break;
-        case EKAuthorizationStatusAuthorized:
-            status = @"authorized";
-            break;
-        default:
-            status = @"undetermined";
-            break;
+    if (@available(iOS 17, *)) {
+        switch (authStatus) {
+            case EKAuthorizationStatusDenied:
+                status = @"denied";
+                break;
+            case EKAuthorizationStatusRestricted:
+                status = @"restricted";
+                break;
+            case EKAuthorizationStatusFullAccess:
+                status = @"authorized";
+                break;
+            case EKAuthorizationStatusWriteOnly:
+                if (limited) {
+                    status = @"authorized";
+                    break;
+                } else {
+                    status = @"restricted";
+                    break;
+                }
+            default:
+                status = @"undetermined";
+                break;
+        }
+    } else {
+        switch (authStatus) {
+            case EKAuthorizationStatusDenied:
+                status = @"denied";
+                break;
+            case EKAuthorizationStatusRestricted:
+                status = @"restricted";
+                break;
+            case EKAuthorizationStatusAuthorized:
+                status = @"authorized";
+                break;
+            default:
+                status = @"undetermined";
+                break;
+        }
     }
 
     resolve(status);
 }
 
-RCT_EXPORT_METHOD(requestPermissions:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(requestPermissions:(BOOL)limited resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self.eventStore requestAccessToEntityType:EKEntityTypeEvent completion:^(BOOL granted, NSError *error) {
-        NSString *status = granted ? @"authorized" : @"denied";
-        if (!error) {
-            resolve(status);
-        } else {
-            reject(@"error", @"authorization request error", error);
-        }
-    }];
+    if (@available(iOS 17, *)) {
+      if (limited) {
+        [self.eventStore requestWriteOnlyAccessToEventsWithCompletion:^(BOOL granted, NSError *error) {
+            NSString *status = granted ? @"authorized" : @"denied";
+            if (!error) {
+                resolve(status);
+            } else {
+                reject(@"error", @"authorization request error", error);
+            }
+        }];
+      } else {
+        [self.eventStore requestFullAccessToEventsWithCompletion:^(BOOL granted, NSError *error) {
+            NSString *status = granted ? @"authorized" : @"denied";
+            if (!error) {
+                resolve(status);
+            } else {
+                reject(@"error", @"authorization request error", error);
+            }
+        }];
+      }
+    } else {
+        [self.eventStore requestAccessToEntityType:EKEntityTypeEvent completion:^(BOOL granted, NSError *error) {
+            NSString *status = granted ? @"authorized" : @"denied";
+            if (!error) {
+                resolve(status);
+            } else {
+                reject(@"error", @"authorization request error", error);
+            }
+        }];
+    }
 }
 
 RCT_EXPORT_METHOD(findCalendars:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
@@ -1043,7 +1097,7 @@ RCT_EXPORT_METHOD(removeEvent:(NSString *)eventId options:(NSDictionary *)option
     @try {
     RNCalendarEvents *strongSelf = weakSelf;
     
-    Boolean futureEvents = [RCTConvert BOOL:options[@"futureEvents"]];
+    BOOL futureEvents = [RCTConvert BOOL:options[@"futureEvents"]];
     NSDate *exceptionDate = [RCTConvert NSDate:options[@"exceptionDate"]];
 
     if (exceptionDate) {
