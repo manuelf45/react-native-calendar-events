@@ -844,7 +844,7 @@ RCT_EXPORT_METHOD(requestPermissions:(BOOL)limited resolver:(RCTPromiseResolveBl
     }
 }
 
-RCT_EXPORT_METHOD(findCalendars:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getCalendars:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (![self isCalendarAccessGranted]) {
         reject(@"error", @"unauthorized to access calendar", nil);
@@ -985,7 +985,7 @@ RCT_EXPORT_METHOD(removeCalendar:(NSString *)calendarId resolver:(RCTPromiseReso
     });
 }
 
-RCT_EXPORT_METHOD(fetchAllEvents:(NSDate *)startDate endDate:(NSDate *)endDate calendars:(NSArray *)calendars resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getEvents:(NSDate *)startDate endDate:(NSDate *)endDate calendars:(NSArray *)calendars resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (![self isCalendarAccessGranted]) {
         reject(@"error", @"unauthorized to access calendar", nil);
@@ -1022,12 +1022,12 @@ RCT_EXPORT_METHOD(fetchAllEvents:(NSDate *)startDate endDate:(NSDate *)endDate c
             }
         }
         @catch (NSException *exception) {
-            reject(@"error", @"fetchAllEvents error", [self exceptionToError:exception]);
+            reject(@"error", @"getEvents error", [self exceptionToError:exception]);
         }
     });
 }
 
-RCT_EXPORT_METHOD(findEventById:(NSString *)eventId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getEventById:(NSString *)eventId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (![self isCalendarAccessGranted]) {
         reject(@"error", @"unauthorized to access calendar", nil);
@@ -1047,7 +1047,7 @@ RCT_EXPORT_METHOD(findEventById:(NSString *)eventId resolver:(RCTPromiseResolveB
             }
         }
         @catch (NSException *exception) {
-            reject(@"error", @"findEventById error", [self exceptionToError:exception]);
+            reject(@"error", @"getEventById error", [self exceptionToError:exception]);
         }
     });
 }

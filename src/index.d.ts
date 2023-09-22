@@ -1,215 +1,225 @@
 // Type definitions for react-native-calendar v1.7.0
 // Typescript version: 3.0
 
-type ISODateString = string;
-export type AuthorizationStatus =
-  | "denied"
-  | "restricted"
-  | "authorized"
-  | "undetermined";
-export type RecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
+type ISODateString = string
+export type AuthorizationStatus = 'denied' | 'restricted' | 'authorized' | 'undetermined'
+export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 /** iOS ONLY - GeoFenced alarm location */
 interface AlarmStructuredLocation {
   /** The title of the location. */
-  title: string;
+  title: string
   /** A value indicating how a location-based alarm is triggered. */
-  proximity: "enter" | "leave" | "none";
+  proximity: 'enter' | 'leave' | 'none'
   /** A minimum distance from the core location that would trigger the calendar event's alarm. */
-  radius: number;
+  radius: number
   /** The geolocation coordinates, as an object with latitude and longitude properties. */
-  coords: { latitude: number; longitude: number };
+  coords: { latitude: number; longitude: number }
 }
 
 export interface Options {
   /** The start date of a recurring event's exception instance. Used for updating single event in a recurring series. */
-  exceptionDate?: ISODateString;
+  exceptionDate?: ISODateString
   /** iOS ONLY - If true the update will span all future events. If false it only update the single instance. */
-  futureEvents?: boolean;
+  futureEvents?: boolean
   /** ANDROID ONLY - If true, can help avoid syncing issues */
-  sync?: boolean;
+  sync?: boolean
 }
 
 interface Alarm<D = ISODateString | number> {
   /** When saving an event, if a Date is given, an alarm will be set with an absolute date. If a Number is given, an alarm will be set with a relative offset (in minutes) from the start date. When reading an event this will always be an ISO Date string */
-  date: D;
+  date: D
   /** iOS ONLY - The location to trigger an alarm. */
-  structuredLocation?: AlarmStructuredLocation;
+  structuredLocation?: AlarmStructuredLocation
 }
 
 interface RecurrenceRule {
   /** Event recurring frequency. */
-  frequency: RecurrenceFrequency;
+  frequency: RecurrenceFrequency
   /** Event recurring end date. This overrides occurrence. */
-  endDate: ISODateString;
+  endDate: ISODateString
   /** Number of event occurrences */
-  occurrence: number;
+  occurrence: number
   /** The interval between events of this recurrence. */
-  interval: number;
+  interval: number
 }
 
 interface Attendee {
   /** The name of the attendee. */
-  name: string;
+  name: string
   /** The email address of the attendee. */
-  email: string;
+  email: string
   /** iOS ONLY - The The phone number of the attendee. */
-  phone?: string;
+  phone?: string
 }
 
 interface Calendar {
   /** Unique calendar ID. */
-  id: string;
+  id: string
   /** The calendar’s title. */
-  title: string;
+  title: string
   /** The calendar’s type. */
-  type: string;
+  type: string
   /** The source object representing the account to which this calendar belongs. */
-  source: string;
+  source: string
   /** Indicates if the calendar is assigned as primary. */
-  isPrimary: boolean;
+  isPrimary: boolean
   /** Indicates if the calendar allows events to be written, edited or removed. */
-  allowsModifications: boolean;
+  allowsModifications: boolean
   /** The color assigned to the calendar represented as a hex value. */
-  color: string;
+  color: string
   /** The event availability settings supported by the calendar. */
-  allowedAvailabilities: string[];
+  allowedAvailabilities: string[]
 }
 
 interface CalendarEventBase {
   /** The start date of the calendar event in ISO format */
-  startDate: ISODateString;
+  startDate: ISODateString
   /** The end date of the calendar event in ISO format. */
-  endDate?: ISODateString;
+  endDate?: ISODateString
   /** Unique id for the calendar where the event will be saved. Defaults to the device's default  calendar. */
-  calendarId?: string;
+  calendarId?: string
   /** Indicates whether the event is an all-day event. */
-  allDay?: boolean;
+  allDay?: boolean
   /** The simple recurrence frequency of the calendar event. */
-  recurrence?: RecurrenceFrequency;
+  recurrence?: RecurrenceFrequency
   /** The location associated with the calendar event. */
-  location?: string;
+  location?: string
   /** iOS ONLY - The location with coordinates. */
-  structuredLocation?: AlarmStructuredLocation;
+  structuredLocation?: AlarmStructuredLocation
   /** iOS ONLY - Indicates whether an event is a detached instance of a repeating event. */
-  isDetached?: boolean;
+  isDetached?: boolean
   /** iOS ONLY - The url associated with the calendar event. */
-  url?: string;
+  url?: string
   /** iOS ONLY - The notes associated with the calendar event. */
-  notes?: string;
+  notes?: string
   /** ANDROID ONLY - The description associated with the calendar event. */
-  description?: string;
+  description?: string
   /** iOS ONLY - The time zone associated with the event */
-  timeZone?: string;
+  timeZone?: string
 }
 
 export interface CalendarEventReadable extends CalendarEventBase {
   /** Unique id for the calendar event */
-  id: string;
+  id: string
   /** The title for the calendar event. */
-  title: string;
+  title: string
   /** The attendees of the event, including the organizer. */
-  attendees?: Attendee[];
+  attendees?: Attendee[]
   /** The calendar containing the event */
-  calendar?: Calendar;
+  calendar?: Calendar
   /** iOS ONLY - The original occurrence date of an event if it is part of a recurring series. */
-  occurrenceDate?: ISODateString;
+  occurrenceDate?: ISODateString
   /** The alarms associated with the calendar event, as an array of alarm objects. */
-  alarms?: Array<Alarm<ISODateString>>;
+  alarms?: Array<Alarm<ISODateString>>
 }
 
 export interface CalendarEventWritable extends CalendarEventBase {
   /** Unique id for the calendar event, used for updating existing events */
-  id?: string;
+  id?: string
   /** The event's recurrence settings */
-  recurrenceRule?: RecurrenceRule;
+  recurrenceRule?: RecurrenceRule
   /** The alarms associated with the calendar event, as an array of alarm objects. */
-  alarms?: Array<Alarm<ISODateString | number>>;
+  alarms?: Array<Alarm<ISODateString | number>>
 }
 
 export interface CalendarOptions {
   /** The calendar title */
-  title: string;
+  title: string
   /** The calendar color */
-  color: string;
+  color: string
   /** iOS ONLY - Entity type for the calendar */
-  entityType: CalendarEntityTypeiOS;
+  entityType: CalendarEntityTypeiOS
   /** Android ONLY - The calendar name */
-  name: string;
+  name: string
   /** Android ONLY - Defines how the event shows up for others when the calendar is shared */
-  accessLevel: CalendarAccessLevelAndroid;
+  accessLevel: CalendarAccessLevelAndroid
   /** Android ONLY - The owner account for this calendar, based on the calendar feed */
-  ownerAccount: string;
+  ownerAccount: string
   /** Android ONLY - The calendar Account source */
-  source: CalendarAccountSourceAndroid;
+  source: CalendarAccountSourceAndroid
 }
 
-export type CalendarEntityTypeiOS = "event" | "reminder";
+export type CalendarEntityTypeiOS = 'event' | 'reminder'
 
 export type CalendarAccessLevelAndroid =
-  | "contributor"
-  | "editor"
-  | "freebusy"
-  | "override"
-  | "owner"
-  | "read"
-  | "respond"
-  | "root";
+  | 'contributor'
+  | 'editor'
+  | 'freebusy'
+  | 'override'
+  | 'owner'
+  | 'read'
+  | 'respond'
+  | 'root'
 
 export type CalendarAccountSourceAndroid =
   | {
       /** The Account name */
-      name: string;
+      name: string
       /** The Account type */
-      type: string;
+      type: string
     }
   | {
       /** The Account name */
-      name: string;
+      name: string
       /** The source (required if source.type is not used) */
-      isLocalAccount: boolean;
-    };
+      isLocalAccount: boolean
+    }
 
 export default class ReactNativeCalendarEvents {
   /**
    * Get calendar authorization status.
    * @param limited - optional, default false, use true to check for calendar read-only vs calendar read/write on Android or write-only vs full access on iOS
    */
-  static checkPermissions(limited?: boolean): Promise<AuthorizationStatus>;
-  /**
-   * Request calendar authorization. Authorization must be granted before accessing calendar events.
-   * @param limited - optional, default false, use true to request calendar read-only vs calendar read/write on Android or write-only vs full access on iOS
-   */
-  static requestPermissions(limited?: boolean): Promise<AuthorizationStatus>;
+  static checkPermissions(limited?: boolean): Promise<AuthorizationStatus>
 
   /** Finds all the calendars on the device. */
-  static findCalendars(): Promise<Calendar[]>;
-  /** Create a calendar.
-   * @param calendar - Calendar to create
-   */
-  static saveCalendar(calendar: CalendarOptions): Promise<string>;
-  /**
-   * Removes a calendar.
-   * @param id - The calendar id
-   * @returns - Promise resolving to boolean to indicate if removal succeeded.
-   */
-  static removeCalendar(id: string): Promise<boolean>;
+  static getCalendars(): Promise<Calendar[]>
+
   /**
    * Find calendar  by id.
    * @param id - Calendar ID
    */
-  static findEventById(id: string): Promise<CalendarEventReadable | null>;
+  static getEventById(id: string): Promise<CalendarEventReadable | null>
+
   /**
    * Fetch all calendar events.
    * @param startDate - Date string in ISO format
    * @param endDate - Date string in ISO format
    * @param [calendarIds] - List of calendar id strings to specify calendar events. Defaults to all calendars if empty.
    */
-  static fetchAllEvents(
+  static getEvents(
     startDate: ISODateString,
     endDate: ISODateString,
     calendarIds?: string[]
-  ): Promise<CalendarEventReadable[]>;
+  ): Promise<CalendarEventReadable[]>
+
+  /**
+   * Removes a calendar.
+   * @param id - The calendar id
+   * @returns - Promise resolving to boolean to indicate if removal succeeded.
+   */
+  static removeCalendar(id: string): Promise<boolean>
+
+  /**
+   * Removes calendar event.
+   * @param id - The event id
+   * @param [options] - Options specific to the saved event.
+   * @returns - Promise resolving to boolean to indicate if removal succeeded.
+   */
+  static removeEvent(id: string, options?: Options): Promise<boolean>
+
+  /**
+   * Request calendar authorization. Authorization must be granted before accessing calendar events.
+   * @param limited - optional, default false, use true to request calendar read-only vs calendar read/write on Android or write-only vs full access on iOS
+   */
+  static requestPermissions(limited?: boolean): Promise<AuthorizationStatus>
+
+  /** Create a calendar.
+   * @param calendar - Calendar to create
+   */
+  static saveCalendar(calendar: CalendarOptions): Promise<string>
+
   /**
    * Creates or updates a calendar event. To update an event, the event id must be defined.
    * @param title - The title of the event
@@ -221,12 +231,5 @@ export default class ReactNativeCalendarEvents {
     title: string,
     details: CalendarEventWritable,
     options?: Options
-  ): Promise<string>;
-  /**
-   * Removes calendar event.
-   * @param id - The event id
-   * @param [options] - Options specific to the saved event.
-   * @returns - Promise resolving to boolean to indicate if removal succeeded.
-   */
-  static removeEvent(id: string, options?: Options): Promise<boolean>;
+  ): Promise<string>
 }

@@ -105,7 +105,7 @@ const App: () => React$Node = () => {
                 <Button
                   title="Find calendars"
                   onPress={() => {
-                    RNCalendarEvents.findCalendars().then(
+                    RNCalendarEvents.getCalendars().then(
                       (result) => {
                         Alert.alert(
                           'Calendars',

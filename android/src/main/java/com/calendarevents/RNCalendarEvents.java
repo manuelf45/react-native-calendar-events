@@ -58,24 +58,24 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return "RNCalendarEvents";
     }
 
-    //region Calendar Permissions
-    private void requestCalendarPermission(boolean limited, final Promise promise)
-    {
+    // region Calendar Permissions
+    private void requestCalendarPermission(boolean limited, final Promise promise) {
         Activity currentActivity = getCurrentActivity();
         if (currentActivity == null) {
             promise.reject("E_ACTIVITY_DOES_NOT_EXIST", "Activity doesn't exist");
             return;
         }
         if (!(currentActivity instanceof PermissionAwareActivity)) {
-            promise.reject("E_ACTIVITY_NOT_PERMISSION_AWARE", "Activity does not implement the PermissionAwareActivity interface");
+            promise.reject("E_ACTIVITY_NOT_PERMISSION_AWARE",
+                    "Activity does not implement the PermissionAwareActivity interface");
             return;
         }
-        PermissionAwareActivity activity = (PermissionAwareActivity)currentActivity;
+        PermissionAwareActivity activity = (PermissionAwareActivity) currentActivity;
         PERMISSION_REQUEST_CODE++;
         permissionsPromises.put(PERMISSION_REQUEST_CODE, promise);
-        String[] permissions = new String[]{Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR};
+        String[] permissions = new String[] { Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR };
         if (limited == true) {
-            permissions = new String[]{Manifest.permission.READ_CALENDAR};
+            permissions = new String[] { Manifest.permission.READ_CALENDAR };
         }
         activity.requestPermissions(permissions, PERMISSION_REQUEST_CODE, this);
     }
@@ -92,7 +92,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             } else if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 permissionsPromise.resolve("denied");
             } else if (permissionsPromises.size() == 1) {
-                permissionsPromise.reject("permissions - unknown error", grantResults.length > 0 ? String.valueOf(grantResults[0]) : "Request was cancelled");
+                permissionsPromise.reject("permissions - unknown error",
+                        grantResults.length > 0 ? String.valueOf(grantResults[0]) : "Request was cancelled");
             }
             permissionsPromises.remove(requestCode);
         }
@@ -111,7 +112,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return writePermission == PackageManager.PERMISSION_GRANTED &&
                 readPermission == PackageManager.PERMISSION_GRANTED;
     }
-    
+
     private boolean shouldShowRequestPermissionRationale(boolean limited) {
         Activity currentActivity = getCurrentActivity();
 
@@ -124,7 +125,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             return false;
         }
 
-        PermissionAwareActivity activity = (PermissionAwareActivity)currentActivity;
+        PermissionAwareActivity activity = (PermissionAwareActivity) currentActivity;
 
         if (limited) {
             return activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_CALENDAR);
@@ -132,7 +133,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return activity.shouldShowRequestPermissionRationale(Manifest.permission.WRITE_CALENDAR);
     }
 
-    //endregion
+    // endregion
 
     private WritableNativeArray findEventCalendars() {
 
@@ -143,7 +144,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         String IS_PRIMARY = CalendarContract.Calendars.IS_PRIMARY == null ? "0" : CalendarContract.Calendars.IS_PRIMARY;
 
-        cursor = cr.query(uri, new String[]{
+        cursor = cr.query(uri, new String[] {
                 CalendarContract.Calendars._ID,
                 CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
                 CalendarContract.Calendars.ACCOUNT_NAME,
@@ -166,7 +167,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         String IS_PRIMARY = CalendarContract.Calendars.IS_PRIMARY == null ? "0" : CalendarContract.Calendars.IS_PRIMARY;
 
-        cursor = cr.query(uri, new String[]{
+        cursor = cr.query(uri, new String[] {
                 CalendarContract.Calendars._ID,
                 CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
                 CalendarContract.Calendars.ACCOUNT_NAME,
@@ -256,9 +257,11 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         }
 
         calendarValues.put(CalendarContract.Calendars.ACCOUNT_NAME, source.getString("name"));
-        calendarValues.put(CalendarContract.Calendars.ACCOUNT_TYPE, isLocalAccount ? CalendarContract.ACCOUNT_TYPE_LOCAL : source.getString("type"));
+        calendarValues.put(CalendarContract.Calendars.ACCOUNT_TYPE,
+                isLocalAccount ? CalendarContract.ACCOUNT_TYPE_LOCAL : source.getString("type"));
         calendarValues.put(CalendarContract.Calendars.CALENDAR_COLOR, details.getInt("color"));
-        calendarValues.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, calAccessConstantMatchingString(details.getString("accessLevel")));
+        calendarValues.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+                calAccessConstantMatchingString(details.getString("accessLevel")));
         calendarValues.put(CalendarContract.Calendars.OWNER_ACCOUNT, details.getString("ownerAccount"));
         calendarValues.put(CalendarContract.Calendars.NAME, details.getString("name"));
         calendarValues.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, details.getString("title"));
@@ -267,7 +270,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         Uri.Builder uriBuilder = CalendarContract.Calendars.CONTENT_URI.buildUpon();
         uriBuilder.appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true");
         uriBuilder.appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, source.getString("name"));
-        uriBuilder.appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, isLocalAccount ? CalendarContract.ACCOUNT_TYPE_LOCAL : source.getString("type"));
+        uriBuilder.appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE,
+                isLocalAccount ? CalendarContract.ACCOUNT_TYPE_LOCAL : source.getString("type"));
 
         Uri calendarsUri = uriBuilder.build();
 
@@ -296,9 +300,9 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         Cursor cursor;
         ContentResolver cr = reactContext.getContentResolver();
         String query = "(" + CalendarContract.Attendees.EVENT_ID + " = ?)";
-        String[] args = new String[]{eventID};
+        String[] args = new String[] { eventID };
 
-        cursor = cr.query(CalendarContract.Attendees.CONTENT_URI, new String[]{
+        cursor = cr.query(CalendarContract.Attendees.CONTENT_URI, new String[] {
                 CalendarContract.Attendees._ID,
                 CalendarContract.Attendees.EVENT_ID,
                 CalendarContract.Attendees.ATTENDEE_NAME,
@@ -321,7 +325,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return result;
     }
 
-    //region Event Accessors
+    // region Event Accessors
     private WritableNativeArray findEvents(Dynamic startDate, Dynamic endDate, ReadableArray calendars) {
         String dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
@@ -334,13 +338,13 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             if (startDate.getType() == ReadableType.String) {
                 eStartDate.setTime(sdf.parse(startDate.asString()));
             } else if (startDate.getType() == ReadableType.Number) {
-                eStartDate.setTimeInMillis((long)startDate.asDouble());
+                eStartDate.setTimeInMillis((long) startDate.asDouble());
             }
 
             if (endDate.getType() == ReadableType.String) {
                 eEndDate.setTime(sdf.parse(endDate.asString()));
             } else if (endDate.getType() == ReadableType.Number) {
-                eEndDate.setTimeInMillis((long)endDate.asDouble());
+                eEndDate.setTimeInMillis((long) endDate.asDouble());
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -358,7 +362,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         String selection = "((" + CalendarContract.Instances.BEGIN + " < " + eEndDate.getTimeInMillis() + ") " +
                 "AND (" + CalendarContract.Instances.END + " >= " + eStartDate.getTimeInMillis() + ") " +
                 "AND (" + CalendarContract.Instances.VISIBLE + " = 1) " +
-                "AND (" + CalendarContract.Instances.STATUS + " IS NOT " + CalendarContract.Events.STATUS_CANCELED + ") ";
+                "AND (" + CalendarContract.Instances.STATUS + " IS NOT " + CalendarContract.Events.STATUS_CANCELED
+                + ") ";
 
         if (calendars.size() > 0) {
             String calendarQuery = "AND (";
@@ -374,7 +379,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         selection += ")";
 
-        cursor = cr.query(uri, new String[]{
+        cursor = cr.query(uri, new String[] {
                 CalendarContract.Instances.EVENT_ID,
                 CalendarContract.Instances.TITLE,
                 CalendarContract.Instances.DESCRIPTION,
@@ -392,11 +397,10 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 CalendarContract.Instances.ORIGINAL_SYNC_ID,
         }, selection, null, null);
 
-
         return serializeEvents(cursor);
     }
 
-    private WritableNativeMap findEventById(String eventID) {
+    private WritableNativeMap getEventById(String eventID) {
 
         WritableNativeMap result;
         Cursor cursor = null;
@@ -405,7 +409,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         String selection = "((" + CalendarContract.Events.DELETED + " != 1))";
 
-        cursor = cr.query(uri, new String[]{
+        cursor = cr.query(uri, new String[] {
                 CalendarContract.Events._ID,
                 CalendarContract.Events.TITLE,
                 CalendarContract.Events.DESCRIPTION,
@@ -445,7 +449,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         String selection = "(Instances._ID = " + eventID + ")";
 
-        cursor = cr.query(uri, new String[]{
+        cursor = cr.query(uri, new String[] {
                 CalendarContract.Instances._ID,
                 CalendarContract.Instances.TITLE,
                 CalendarContract.Instances.DESCRIPTION,
@@ -472,14 +476,15 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return result;
     }
 
-    private long addEvent(String title, ReadableMap details, ReadableMap options, final Promise promise) throws ParseException {
+    private long addEvent(String title, ReadableMap details, ReadableMap options, final Promise promise)
+            throws ParseException {
         String dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
         boolean skipTimezone = false;
-        if(details.hasKey("skipAndroidTimezone") && details.getBoolean("skipAndroidTimezone")){
+        if (details.hasKey("skipAndroidTimezone") && details.getBoolean("skipAndroidTimezone")) {
             skipTimezone = true;
         }
-        if(!skipTimezone){
+        if (!skipTimezone) {
             sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         }
         ContentResolver cr = reactContext.getContentResolver();
@@ -506,7 +511,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                     startCal.setTime(sdf.parse(details.getString("startDate")));
                     eventValues.put(CalendarContract.Events.DTSTART, startCal.getTimeInMillis());
                 } else if (type == ReadableType.Number) {
-                    eventValues.put(CalendarContract.Events.DTSTART, (long)details.getDouble("startDate"));
+                    eventValues.put(CalendarContract.Events.DTSTART, (long) details.getDouble("startDate"));
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -523,7 +528,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                     endCal.setTime(sdf.parse(details.getString("endDate")));
                     eventValues.put(CalendarContract.Events.DTEND, endCal.getTimeInMillis());
                 } else if (type == ReadableType.Number) {
-                    eventValues.put(CalendarContract.Events.DTEND, (long)details.getDouble("endDate"));
+                    eventValues.put(CalendarContract.Events.DTEND, (long) details.getDouble("endDate"));
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -571,7 +576,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                         endDate = format.format(sdf.parse(recurrenceRule.getString("endDate")));
                     } else if (type == ReadableType.Number) {
                         Calendar calendar = Calendar.getInstance();
-                        calendar.setTimeInMillis((long)recurrenceRule.getDouble("endDate"));
+                        calendar.setTimeInMillis((long) recurrenceRule.getDouble("endDate"));
                         endDate = format.format(calendar.getTime());
                     }
                 }
@@ -588,7 +593,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                     weekPositionInMonth = recurrenceRule.getInt("weekPositionInMonth");
                 }
 
-                String rule = createRecurrenceRule(frequency, interval, endDate, occurrence, daysOfWeek, weekStart, weekPositionInMonth);
+                String rule = createRecurrenceRule(frequency, interval, endDate, occurrence, daysOfWeek, weekStart,
+                        weekPositionInMonth);
                 if (duration != null) {
                     eventValues.put(CalendarContract.Events.DURATION, duration);
                 }
@@ -619,12 +625,13 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         }
 
         if (details.hasKey("availability")) {
-            eventValues.put(CalendarContract.Events.AVAILABILITY, availabilityConstantMatchingString(details.getString("availability")));
+            eventValues.put(CalendarContract.Events.AVAILABILITY,
+                    availabilityConstantMatchingString(details.getString("availability")));
         }
 
         if (details.hasKey("id")) {
             long eventID = Long.parseLong(details.getString("id"));
-            WritableMap eventInstance = findEventById(details.getString("id"));
+            WritableMap eventInstance = getEventById(details.getString("id"));
 
             if (eventInstance != null) {
                 ReadableMap eventCalendar = eventInstance.getMap("calendar");
@@ -634,7 +641,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
                     if (options.hasKey("sync") && options.getBoolean("sync")) {
                         syncCalendar(cr, eventInstance.getMap("calendar").getString("id"));
-                        updateUri = eventUriAsSyncAdapter(updateUri, eventCalendar.getString("source"), eventCalendar.getString("type"));
+                        updateUri = eventUriAsSyncAdapter(updateUri, eventCalendar.getString("source"),
+                                eventCalendar.getString("type"));
                     }
                     cr.update(updateUri, eventValues, null, null);
 
@@ -645,20 +653,24 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                     try {
                         if (type == ReadableType.String) {
                             exceptionStart.setTime(sdf.parse(options.getString("exceptionDate")));
-                            eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, exceptionStart.getTimeInMillis());
+                            eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME,
+                                    exceptionStart.getTimeInMillis());
                         } else if (type == ReadableType.Number) {
-                            eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, (long) options.getDouble("exceptionDate"));
+                            eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME,
+                                    (long) options.getDouble("exceptionDate"));
                         }
                     } catch (ParseException e) {
                         e.printStackTrace();
                         throw e;
                     }
 
-                    Uri exceptionUri = Uri.withAppendedPath(CalendarContract.Events.CONTENT_EXCEPTION_URI, Long.toString(eventID));
+                    Uri exceptionUri = Uri.withAppendedPath(CalendarContract.Events.CONTENT_EXCEPTION_URI,
+                            Long.toString(eventID));
 
                     if (options.hasKey("sync") && options.getBoolean("sync")) {
                         syncCalendar(cr, eventInstance.getMap("calendar").getString("id"));
-                        eventUriAsSyncAdapter(exceptionUri, eventCalendar.getString("source"), eventCalendar.getString("type"));
+                        eventUriAsSyncAdapter(exceptionUri, eventCalendar.getString("source"),
+                                eventCalendar.getString("type"));
                     }
 
                     try {
@@ -673,7 +685,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             }
 
             if (details.hasKey("alarms")) {
-                createRemindersForEvent(cr, Long.parseLong(details.getString("id")), details.getArray("alarms"), promise);
+                createRemindersForEvent(cr, Long.parseLong(details.getString("id")), details.getArray("alarms"),
+                        promise);
             }
 
             if (details.hasKey("attendees")) {
@@ -704,7 +717,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
             if (options.hasKey("sync") && options.getBoolean("sync")) {
                 syncCalendar(cr, calendar.getString("id"));
-                createEventUri = eventUriAsSyncAdapter(CalendarContract.Events.CONTENT_URI, calendar.getString("source"), calendar.getString("type"));
+                createEventUri = eventUriAsSyncAdapter(CalendarContract.Events.CONTENT_URI,
+                        calendar.getString("source"), calendar.getString("type"));
             }
 
             Uri eventUri = cr.insert(createEventUri, eventValues);
@@ -735,7 +749,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         try {
             ContentResolver cr = reactContext.getContentResolver();
-            WritableMap eventInstance = findEventById(eventID);
+            WritableMap eventInstance = getEventById(eventID);
             ReadableMap eventCalendar = eventInstance.getMap("calendar");
 
             if (!options.hasKey("exceptionDate")) {
@@ -743,7 +757,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
                 if (options.hasKey("sync") && options.getBoolean("sync")) {
                     syncCalendar(cr, eventCalendar.getString("id"));
-                    uri = eventUriAsSyncAdapter(uri, eventCalendar.getString("source"), eventCalendar.getString("type"));
+                    uri = eventUriAsSyncAdapter(uri, eventCalendar.getString("source"),
+                            eventCalendar.getString("type"));
                 }
                 rows = cr.delete(uri, null, null);
 
@@ -758,9 +773,11 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 try {
                     if (type == ReadableType.String) {
                         exceptionStart.setTime(sdf.parse(options.getString("exceptionDate")));
-                        eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, exceptionStart.getTimeInMillis());
+                        eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME,
+                                exceptionStart.getTimeInMillis());
                     } else if (type == ReadableType.Number) {
-                        eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, (long) options.getDouble("exceptionDate"));
+                        eventValues.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME,
+                                (long) options.getDouble("exceptionDate"));
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
@@ -772,7 +789,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 Uri uri = Uri.withAppendedPath(CalendarContract.Events.CONTENT_EXCEPTION_URI, eventID);
 
                 if (options.hasKey("sync") && options.getBoolean("sync")) {
-                    uri = eventUriAsSyncAdapter(uri, eventCalendar.getString("source"), eventCalendar.getString("type"));
+                    uri = eventUriAsSyncAdapter(uri, eventCalendar.getString("source"),
+                            eventCalendar.getString("type"));
                 }
 
                 Uri exceptionUri = cr.insert(uri, eventValues);
@@ -789,8 +807,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return rows > 0;
     }
 
-    //sync adaptors
-    private Uri eventUriAsSyncAdapter (Uri uri, String accountName, String accountType) {
+    // sync adaptors
+    private Uri eventUriAsSyncAdapter(Uri uri, String accountName, String accountType) {
         uri = uri.buildUpon()
                 .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
                 .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
@@ -805,16 +823,17 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         values.put(CalendarContract.Calendars.SYNC_EVENTS, 1);
         values.put(CalendarContract.Calendars.VISIBLE, 1);
 
-        cr.update(ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, Long.parseLong(calendarId)), values, null, null);
+        cr.update(ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, Long.parseLong(calendarId)),
+                values, null, null);
     }
-    //endregion
+    // endregion
 
-    //region Attendees
+    // region Attendees
     private void createAttendeesForEvent(ContentResolver resolver, long eventID, ReadableArray attendees) {
         Cursor cursor = CalendarContract.Attendees.query(resolver, eventID, new String[] {
                 CalendarContract.Attendees._ID
         });
-        
+
         while (cursor.moveToNext()) {
             long attendeeId = cursor.getLong(0);
             Uri attendeeUri = ContentUris.withAppendedId(CalendarContract.Attendees.CONTENT_URI, attendeeId);
@@ -830,7 +849,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 ContentValues attendeeValues = new ContentValues();
                 attendeeValues.put(CalendarContract.Attendees.EVENT_ID, eventID);
                 attendeeValues.put(CalendarContract.Attendees.ATTENDEE_EMAIL, attendee.getString("url"));
-                attendeeValues.put(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP, CalendarContract.Attendees.RELATIONSHIP_ATTENDEE);
+                attendeeValues.put(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
+                        CalendarContract.Attendees.RELATIONSHIP_ATTENDEE);
 
                 if (fNameType == ReadableType.String) {
                     attendeeValues.put(CalendarContract.Attendees.ATTENDEE_NAME, attendee.getString("firstName"));
@@ -839,15 +859,16 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             }
         }
     }
-    //endregion
+    // endregion
 
-    //region Reminders
-    private void createRemindersForEvent(ContentResolver resolver, long eventID, ReadableArray reminders, final Promise promise) {
+    // region Reminders
+    private void createRemindersForEvent(ContentResolver resolver, long eventID, ReadableArray reminders,
+            final Promise promise) {
         Cursor cursor = null;
 
         if (resolver != null) {
             cursor = CalendarContract.Reminders.query(resolver, eventID, new String[] {
-                CalendarContract.Reminders._ID
+                    CalendarContract.Reminders._ID
             });
         }
 
@@ -892,9 +913,9 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         ContentResolver cr = reactContext.getContentResolver();
         String selection = "(" + CalendarContract.Reminders.EVENT_ID + " = ?)";
 
-        Cursor cursor = cr.query(CalendarContract.Reminders.CONTENT_URI, new String[]{
+        Cursor cursor = cr.query(CalendarContract.Reminders.CONTENT_URI, new String[] {
                 CalendarContract.Reminders.MINUTES
-        }, selection, new String[] {eventID}, null);
+        }, selection, new String[] { eventID }, null);
 
         while (cursor != null && cursor.moveToNext()) {
             WritableNativeMap alarm = new WritableNativeMap();
@@ -922,17 +943,17 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         return results;
     }
-    //endregion
+    // endregion
 
-    //region Availability
+    // region Availability
     private WritableNativeArray calendarAllowedAvailabilitiesFromDBString(String dbString) {
         WritableNativeArray availabilitiesStrings = new WritableNativeArray();
-        for(String availabilityStr: dbString.split(",")) {
+        for (String availabilityStr : dbString.split(",")) {
             int availabilityId = -1;
 
             try {
                 availabilityId = Integer.parseInt(availabilityStr);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 // Some devices seem to just use strings.
                 if (availabilityStr.equals("AVAILABILITY_BUSY")) {
                     availabilityId = CalendarContract.Events.AVAILABILITY_BUSY;
@@ -943,7 +964,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 }
             }
 
-            switch(availabilityId) {
+            switch (availabilityId) {
                 case CalendarContract.Events.AVAILABILITY_BUSY:
                     availabilitiesStrings.pushString("busy");
                     break;
@@ -959,9 +980,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return availabilitiesStrings;
     }
 
-    private String availabilityStringMatchingConstant(Integer constant)
-    {
-        switch(constant) {
+    private String availabilityStringMatchingConstant(Integer constant) {
+        switch (constant) {
             case CalendarContract.Events.AVAILABILITY_BUSY:
             default:
                 return "busy";
@@ -973,19 +993,19 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     }
 
     private Integer availabilityConstantMatchingString(String string) throws IllegalArgumentException {
-        if (string.equals("free")){
+        if (string.equals("free")) {
             return CalendarContract.Events.AVAILABILITY_FREE;
         }
 
-        if (string.equals("tentative")){
+        if (string.equals("tentative")) {
             return CalendarContract.Events.AVAILABILITY_TENTATIVE;
         }
 
         return CalendarContract.Events.AVAILABILITY_BUSY;
     }
-    //endregion
+    // endregion
 
-    private String ReadableArrayToString (ReadableArray strArr) {
+    private String ReadableArrayToString(ReadableArray strArr) {
         ArrayList<Object> array = strArr.toArrayList();
         StringBuilder strBuilder = new StringBuilder();
         for (int i = 0; i < array.size(); i++) {
@@ -996,15 +1016,16 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return newString;
     }
 
-    //region Recurrence Rule
-    private String createRecurrenceRule(String recurrence, Integer interval, String endDate, Integer occurrence, ReadableArray daysOfWeek, String weekStart, Integer weekPositionInMonth) {
+    // region Recurrence Rule
+    private String createRecurrenceRule(String recurrence, Integer interval, String endDate, Integer occurrence,
+            ReadableArray daysOfWeek, String weekStart, Integer weekPositionInMonth) {
         String rrule;
 
         if (recurrence.equals("daily")) {
-            rrule=  "FREQ=DAILY";
+            rrule = "FREQ=DAILY";
         } else if (recurrence.equals("weekly")) {
             rrule = "FREQ=WEEKLY";
-        }  else if (recurrence.equals("monthly")) {
+        } else if (recurrence.equals("monthly")) {
             rrule = "FREQ=MONTHLY";
         } else if (recurrence.equals("yearly")) {
             rrule = "FREQ=YEARLY";
@@ -1037,7 +1058,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
         return rrule;
     }
-    //endregion
+    // endregion
 
     // region Serialize Events
     private WritableNativeArray serializeEvents(Cursor cursor) {
@@ -1091,8 +1112,10 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 recurrenceRule.putString("frequency", recurrenceRules[0].split("=")[1].toLowerCase());
             }
 
-            if (cursor.getColumnIndex(CalendarContract.Events.DURATION) != -1 && cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DURATION)) != null) {
-                recurrenceRule.putString("duration", cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DURATION)));
+            if (cursor.getColumnIndex(CalendarContract.Events.DURATION) != -1
+                    && cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DURATION)) != null) {
+                recurrenceRule.putString("duration",
+                        cursor.getString(cursor.getColumnIndex(CalendarContract.Events.DURATION)));
             }
 
             if (recurrenceRules.length >= 2 && recurrenceRules[1].split("=")[0].equals("INTERVAL")) {
@@ -1133,12 +1156,15 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             event.putArray("alarms", emptyAlarms);
         }
 
-        if (cursor.getColumnIndex(CalendarContract.Events.ORIGINAL_ID) != -1 && cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ORIGINAL_ID)) != null) {
+        if (cursor.getColumnIndex(CalendarContract.Events.ORIGINAL_ID) != -1
+                && cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ORIGINAL_ID)) != null) {
             event.putString("originalId", cursor.getString(cursor.getColumnIndex(CalendarContract.Events.ORIGINAL_ID)));
         }
 
-        if (cursor.getColumnIndex(CalendarContract.Instances.ORIGINAL_SYNC_ID) != -1 && cursor.getString(cursor.getColumnIndex(CalendarContract.Instances.ORIGINAL_SYNC_ID)) != null) {
-            event.putString("syncId", cursor.getString(cursor.getColumnIndex(CalendarContract.Instances.ORIGINAL_SYNC_ID)));
+        if (cursor.getColumnIndex(CalendarContract.Instances.ORIGINAL_SYNC_ID) != -1
+                && cursor.getString(cursor.getColumnIndex(CalendarContract.Instances.ORIGINAL_SYNC_ID)) != null) {
+            event.putString("syncId",
+                    cursor.getString(cursor.getColumnIndex(CalendarContract.Instances.ORIGINAL_SYNC_ID)));
         }
 
         return event;
@@ -1201,7 +1227,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
 
             WritableNativeMap attendee = new WritableNativeMap();
 
-            attendee.putString("name", cursor.getString( 2));
+            attendee.putString("name", cursor.getString(2));
             attendee.putString("email", cursor.getString(3));
             attendee.putString("type", cursor.getString(4));
             attendee.putString("relationship", cursor.getString(5));
@@ -1223,11 +1249,12 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         return permissionKey;
     }
 
-    //region React Native Methods
+    // region React Native Methods
     @ReactMethod
     public void checkPermissions(boolean limited, Promise promise) {
         try {
-            SharedPreferences sharedPreferences = reactContext.getSharedPreferences(RNC_PREFS, ReactContext.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = reactContext.getSharedPreferences(RNC_PREFS,
+                    ReactContext.MODE_PRIVATE);
             boolean permissionRequested = sharedPreferences.getBoolean(getPermissionKey(limited), false);
 
             if (this.haveCalendarPermissions(limited)) {
@@ -1239,8 +1266,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             } else {
                 promise.resolve("restricted");
             }
-        }
-        catch(Throwable t) {
+        } catch (Throwable t) {
             Log.e("RNCalendarEvents error checking permissions", t.getMessage(), t);
             promise.reject("error checking permissions", t.getMessage(), t);
         }
@@ -1249,7 +1275,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     @ReactMethod
     public void requestPermissions(boolean limited, Promise promise) {
         try {
-            SharedPreferences sharedPreferences = reactContext.getSharedPreferences(RNC_PREFS, ReactContext.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = reactContext.getSharedPreferences(RNC_PREFS,
+                    ReactContext.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(getPermissionKey(limited), true);
             editor.apply();
@@ -1259,25 +1286,23 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             } else {
                 this.requestCalendarPermission(limited, promise);
             }
-        }
-        catch(Throwable t) {
+        } catch (Throwable t) {
             Log.e("RNCalendarEvents error requesting permissions", t.getMessage(), t);
             promise.reject("error requesting permissions", t.getMessage(), t);
         }
     }
 
     @ReactMethod
-    public void findCalendars(final Promise promise) {
+    public void getCalendars(final Promise promise) {
         if (this.haveCalendarPermissions(true)) {
             try {
-                Thread thread = new Thread(new Runnable(){
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             WritableArray calendars = findEventCalendars();
                             promise.resolve(calendars);
-                        }
-                        catch(Throwable t) {
+                        } catch (Throwable t) {
                             Log.e("RNCalendarEvents calendar request error", t.getMessage(), t);
                             promise.reject("calendar request error", t.getMessage(), t);
                         }
@@ -1299,7 +1324,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             return;
         }
         try {
-            Thread thread = new Thread(new Runnable(){
+            Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -1321,14 +1346,13 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     public void removeCalendar(final String CalendarID, final Promise promise) {
         if (this.haveCalendarPermissions(false)) {
             try {
-                Thread thread = new Thread(new Runnable(){
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             boolean successful = removeCalendar(CalendarID);
                             promise.resolve(successful);
-                        }
-                        catch(Throwable t) {
+                        } catch (Throwable t) {
                             Log.e("RNCalendarEvents error removing calendar", t.getMessage(), t);
                             promise.reject("error removing calendar", t.getMessage(), t);
                         }
@@ -1344,11 +1368,13 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
         }
 
     }
+
     @ReactMethod
-    public void saveEvent(final String title, final ReadableMap details, final ReadableMap options, final Promise promise) {
+    public void saveEvent(final String title, final ReadableMap details, final ReadableMap options,
+            final Promise promise) {
         if (this.haveCalendarPermissions(false)) {
             try {
-                Thread thread = new Thread(new Runnable(){
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         long eventId;
@@ -1375,18 +1401,18 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     }
 
     @ReactMethod
-    public void findAllEvents(final Dynamic startDate, final Dynamic endDate, final ReadableArray calendars, final Promise promise) {
+    public void getEvents(final Dynamic startDate, final Dynamic endDate, final ReadableArray calendars,
+            final Promise promise) {
 
         if (this.haveCalendarPermissions(true)) {
             try {
-                Thread thread = new Thread(new Runnable(){
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             WritableNativeArray results = findEvents(startDate, endDate, calendars);
                             promise.resolve(results);
-                        }
-                        catch(Throwable t) {
+                        } catch (Throwable t) {
                             Log.e("RNCalendarEvents find event error", t.getMessage(), t);
                             promise.reject("find event error", t.getMessage(), t);
                         }
@@ -1404,17 +1430,16 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     }
 
     @ReactMethod
-    public void findEventById(final String eventID, final Promise promise) {
+    public void getEventById(final String eventID, final Promise promise) {
         if (this.haveCalendarPermissions(true)) {
             try {
-                Thread thread = new Thread(new Runnable(){
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            WritableMap results = findEventById(eventID);
+                            WritableMap results = getEventById(eventID);
                             promise.resolve(results);
-                        }
-                        catch(Throwable t) {
+                        } catch (Throwable t) {
                             Log.e("RNCalendarEvents find event error", t.getMessage(), t);
                             promise.reject("find event error", t.getMessage(), t);
                         }
@@ -1435,14 +1460,13 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     public void removeEvent(final String eventID, final ReadableMap options, final Promise promise) {
         if (this.haveCalendarPermissions(false)) {
             try {
-                Thread thread = new Thread(new Runnable(){
+                Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             boolean successful = removeEvent(eventID, options);
                             promise.resolve(successful);
-                        }
-                        catch(Throwable t) {
+                        } catch (Throwable t) {
                             Log.e("RNCalendarEvents error removing event", t.getMessage(), t);
                             promise.reject("error removing event", t.getMessage(), t);
                         }
@@ -1454,7 +1478,8 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
                 promise.reject("error removing event", t.getMessage(), t);
             }
         } else {
-            promise.reject("remove event error", "you don't have permissions to remove an event from the users calendar");
+            promise.reject("remove event error",
+                    "you don't have permissions to remove an event from the users calendar");
         }
 
     }
@@ -1468,8 +1493,7 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
             if (sendIntent.resolveActivity(reactContext.getPackageManager()) != null) {
                 reactContext.startActivity(sendIntent);
             }
-        }
-        catch(Throwable t) {
+        } catch (Throwable t) {
             Log.e("RNCalendarEvents error opening event in calendar", t.getMessage(), t);
         }
     }
@@ -1478,5 +1502,5 @@ public class RNCalendarEvents extends ReactContextBaseJavaModule implements Perm
     public void uriForCalendar(Promise promise) {
         promise.resolve(CalendarContract.Events.CONTENT_URI.toString());
     }
-    //endregion
+    // endregion
 }

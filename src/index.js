@@ -7,35 +7,25 @@ export default {
     return RNCalendarEvents.checkPermissions(limited);
   },
 
-  async requestPermissions(limited = false) {
-    return RNCalendarEvents.requestPermissions(limited);
+  async getCalendars() {
+    return RNCalendarEvents.getCalendars();
   },
 
-  async fetchAllEvents(startDate, endDate, calendars = []) {
-    return RNCalendarEvents.fetchAllEvents(startDate, endDate, calendars);
+  async getEventById(id) {
+    return RNCalendarEvents.getEventById(id);
   },
 
-  async findCalendars() {
-    return RNCalendarEvents.findCalendars();
+  async getEvents(startDate, endDate, calendars = []) {
+    return RNCalendarEvents.getEvents(startDate, endDate, calendars);
   },
 
-  async saveCalendar(options = {}) {
-    return RNCalendarEvents.saveCalendar({
-      ...options,
-      color: options.color ? processColor(options.color) : undefined,
-    });
+  async openEventInCalendar(eventID) {
+    if (Platform.OS !== "android") return;
+    RNCalendarEvents.openEventInCalendar(eventID);
   },
 
   async removeCalendar(id) {
     return RNCalendarEvents.removeCalendar(id);
-  },
-
-  async findEventById(id) {
-    return RNCalendarEvents.findEventById(id);
-  },
-
-  async saveEvent(title, details, options = { sync: false }) {
-    return RNCalendarEvents.saveEvent(title, details, options);
   },
 
   async removeEvent(
@@ -50,13 +40,23 @@ export default {
     return RNCalendarEvents.removeEvent(id, options);
   },
 
+  async requestPermissions(limited = false) {
+    return RNCalendarEvents.requestPermissions(limited);
+  },
+
+  async saveCalendar(options = {}) {
+    return RNCalendarEvents.saveCalendar({
+      ...options,
+      color: options.color ? processColor(options.color) : undefined,
+    });
+  },
+
+  async saveEvent(title, details, options = { sync: false }) {
+    return RNCalendarEvents.saveEvent(title, details, options);
+  },
+
   async uriForCalendar() {
     if (Platform.OS !== "android") return;
     return RNCalendarEvents.uriForCalendar();
-  },
-
-  async openEventInCalendar(eventID) {
-    if (Platform.OS !== "android") return;
-    RNCalendarEvents.openEventInCalendar(eventID);
   },
 };

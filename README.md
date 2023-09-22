@@ -155,12 +155,12 @@ You do that by altering your AndroidManifest.xml to "remove" the WRITE_CALENDAR 
   <uses-permission tools:node="remove" android:name="android.permission.WRITE_CALENDAR" />
 ```
 
-### `findCalendars`
+### `getCalendars`
 
 Finds all the calendars on the device.
 
 ```javascript
-RNCalendarEvents.findCalendars();
+RNCalendarEvents.getCalendars();
 ```
 
 Returns: **Promise**
@@ -176,7 +176,7 @@ Create a calendar.
 RNCalendarEvents.saveCalendar(calendar);
 ```
 
-⚠️ When you want to save a calendar, you need to use a valid source (find using [`findCalendars`](#findcalendars)).
+⚠️ When you want to save a calendar, you need to use a valid source (find using [`getCalendars`](#getCalendars)).
 
 Arguments:
 
@@ -204,13 +204,13 @@ Returns: **Promise**
 - fulfilled: Bool - Successful
 - rejected: Error
 
-### `findEventById`
+### `getEventById`
 
 Find calendar event by id.
 Returns a promise with fulfilled found events.
 
 ```javascript
-RNCalendarEvents.findEventById(id);
+RNCalendarEvents.getEventById(id);
 ```
 
 Arguments:
@@ -222,13 +222,13 @@ Returns: **Promise**
 - fulfilled: Object | null - Found event with unique id.
 - rejected: Error
 
-### `fetchAllEvents`
+### `getEvents`
 
 Fetch all calendar events.
 Returns a promise with fulfilled found events.
 
 ```javascript
-RNCalendarEvents.fetchAllEvents(startDate, endDate, calendars);
+RNCalendarEvents.getEvents(startDate, endDate, calendars);
 ```
 
 Arguments:
