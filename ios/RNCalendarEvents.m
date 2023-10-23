@@ -1098,7 +1098,7 @@ RCT_EXPORT_METHOD(saveEvent:(NSString *)title
 
 RCT_EXPORT_METHOD(removeEvent:(NSString *)eventId options:(NSDictionary *)options resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (![self isCalendarWriteOnlyGranted]) {
+    if (![self isCalendarAccessGranted]) {
         reject(@"error", @"unauthorized to access calendar", nil);
         return;
     }
