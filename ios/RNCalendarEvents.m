@@ -102,6 +102,17 @@ RCT_EXPORT_MODULE()
     }
 }
 
+- (BOOL)isCalendarWriteOnlyGranted
+{
+    EKAuthorizationStatus status = [EKEventStore authorizationStatusForEntityType:EKEntityTypeEvent];
+  
+    if (@available(iOS 17, *)) {
+        return (status == EKAuthorizationStatusFullAccess || status == EKAuthorizationStatusAuthorized || status == EKAuthorizationStatusWriteOnly);
+    } else {
+        return status == EKAuthorizationStatusAuthorized;
+    }
+}
+
 #pragma mark -
 #pragma mark Event Store Accessors
 
@@ -1058,7 +1069,7 @@ RCT_EXPORT_METHOD(saveEvent:(NSString *)title
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (![self isCalendarAccessGranted]) {
+    if (![self isCalendarWriteOnlyGranted]) {
         reject(@"error", @"unauthorized to access calendar", nil);
         return;
     }
